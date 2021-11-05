@@ -207,19 +207,28 @@ def visualize_quiver(
     x2_mesh = cut_plane.df.x2.values.reshape(
         cut_plane.resolution[1], cut_plane.resolution[0]
     )
-    v_mesh = cut_plane.df.v.values.reshape(
+    u_mesh_old = cut_plane.df.u.values.reshape(
         cut_plane.resolution[1], cut_plane.resolution[0]
     )
-    w_mesh = cut_plane.df.w.values.reshape(
+    v_mesh_old = cut_plane.df.v.values.reshape(
         cut_plane.resolution[1], cut_plane.resolution[0]
     )
+    wind_dir_mesh = cut_plane.df.dir.values.reshape(
+        cut_plane.resolution[1], cut_plane.resolution[0]
+    )
+    u_mesh = u_mesh_old * np.cos(
+        np.deg2rad(wind_dir_mesh)
+    ) + v_mesh_old * np.sin(np.deg2rad(wind_dir_mesh))
+    v_mesh = -u_mesh_old * np.sin(
+        np.deg2rad(wind_dir_mesh)
+    ) + v_mesh_old * np.cos(np.deg2rad(wind_dir_mesh))
 
     # plot the stream plot
     ax.streamplot(
         (x1_mesh[::downSamp, ::downSamp]),
         (x2_mesh[::downSamp, ::downSamp]),
+        u_mesh[::downSamp, ::downSamp],
         v_mesh[::downSamp, ::downSamp],
-        w_mesh[::downSamp, ::downSamp],
         # scale=80.0,
         # alpha=0.75,
         # **kwargs

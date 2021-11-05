@@ -367,6 +367,7 @@ class FlorisInterface(LoggerBase):
         u_flat = flow_field.u.flatten()
         v_flat = flow_field.v.flatten()
         w_flat = flow_field.w.flatten()
+        dir_flat = flow_field.wind_map.grid_wind_direction.flatten()
 
         # Create a df of these
         if normal_vector == "z":
@@ -378,6 +379,7 @@ class FlorisInterface(LoggerBase):
                     "u": u_flat,
                     "v": v_flat,
                     "w": w_flat,
+                    "dir": dir_flat,
                 }
             )
         if normal_vector == "x":
@@ -389,6 +391,7 @@ class FlorisInterface(LoggerBase):
                     "u": u_flat,
                     "v": v_flat,
                     "w": w_flat,
+                    "dir": dir_flat,
                 }
             )
         if normal_vector == "y":
@@ -400,6 +403,7 @@ class FlorisInterface(LoggerBase):
                     "u": u_flat,
                     "v": v_flat,
                     "w": w_flat,
+                    "dir": dir_flat,
                 }
             )
 

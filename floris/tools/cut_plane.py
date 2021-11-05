@@ -194,6 +194,14 @@ def change_resolution(cut_plane, resolution=(100, 100)):
         method="cubic",
     )
 
+    dir_mesh = griddata(
+        np.column_stack(
+            [nudge_outward(cut_plane.df.x1), nudge_outward(cut_plane.df.x2)]
+        ),
+        cut_plane.df.dir.values,
+        (x1_mesh.flatten(), x2_mesh.flatten()),
+        method="cubic",
+    )
     # Assign back to df
     cut_plane.df = pd.DataFrame(
         {
@@ -203,6 +211,7 @@ def change_resolution(cut_plane, resolution=(100, 100)):
             "u": u_mesh.flatten(),
             "v": v_mesh.flatten(),
             "w": w_mesh.flatten(),
+            "dir": dir_mesh.flatten(),
         }
     )
 
@@ -267,6 +276,15 @@ def interpolate_onto_array(cut_plane_in, x1_array, x2_array):
         method="cubic",
     )
 
+    dir_mesh = griddata(
+        np.column_stack(
+            [nudge_outward(cut_plane.df.x1), nudge_outward(cut_plane.df.x2)]
+        ),
+        cut_plane.df.dir.values,
+        (x1_mesh.flatten(), x2_mesh.flatten()),
+        method="cubic",
+    )
+
     # Assign back to df
     cut_plane.df = pd.DataFrame(
         {
@@ -276,6 +294,7 @@ def interpolate_onto_array(cut_plane_in, x1_array, x2_array):
             "u": u_mesh.flatten(),
             "v": v_mesh.flatten(),
             "w": w_mesh.flatten(),
+            "dir": dir_mesh.flatten(),
         }
     )
 

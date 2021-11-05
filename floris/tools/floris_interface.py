@@ -264,6 +264,7 @@ class FlorisInterface(LoggerBase):
         x3_value=100,
         x1_bounds=None,
         x2_bounds=None,
+        calculate_wake=True,
     ):
         """
         Calculates velocity values through the
@@ -283,6 +284,9 @@ class FlorisInterface(LoggerBase):
                 Defaults to None.
             x2_bounds (tuple, optional): Limits of output array (in m).
                 Defaults to None.
+            calculate_wake (bool): Calculate the flow field accounting for waking.
+                If False, only the initial flow field before wake calculations
+                will be returned.
 
         Returns:
             :py:class:`pandas.DataFrame`: containing values of x1, x2, u, v, w
@@ -357,8 +361,11 @@ class FlorisInterface(LoggerBase):
         if normal_vector == "y":
             points = np.row_stack((x1_array, x3_array, x2_array))
 
-        # Recalculate wake with these points
-        flow_field.calculate_wake(points=points)
+        if calculate_wake:
+            # Recalculate wake with these points
+            flow_field.calculate_wake(points=points)
+        else:
+            flow_field._compute_initialized_domain(points=points)
 
         # Get results vectors
         x_flat = flow_field.x.flatten()
@@ -492,6 +499,7 @@ class FlorisInterface(LoggerBase):
         y_resolution=200,
         x_bounds=None,
         y_bounds=None,
+        calculate_wake=True,
     ):
         """
         Shortcut method to instantiate a :py:class:`~.tools.cut_plane.CutPlane`
@@ -508,6 +516,9 @@ class FlorisInterface(LoggerBase):
                 Defaults to None.
             y_bounds (tuple, optional): Limits of output array (in m).
                 Defaults to None.
+            calculate_wake (bool): Calculate the flow field accounting for waking.
+                If False, only the initial flow field before wake calculations
+                will be returned.
 
         Returns:
             :py:class:`~.tools.cut_plane.CutPlane`: containing values
@@ -528,6 +539,7 @@ class FlorisInterface(LoggerBase):
             x3_value=height,
             x1_bounds=x_bounds,
             x2_bounds=y_bounds,
+            calculate_wake=calculate_wake
         )
 
         # Compute and return the cutplane
@@ -543,7 +555,13 @@ class FlorisInterface(LoggerBase):
         return hor_plane
 
     def get_cross_plane(
-        self, x_loc, y_resolution=200, z_resolution=200, y_bounds=None, z_bounds=None
+        self,
+        x_loc,
+        y_resolution=200,
+        z_resolution=200,
+        y_bounds=None,
+        z_bounds=None,
+        calculate_wake=True
     ):
         """
         Shortcut method to instantiate a :py:class:`~.tools.cut_plane.CutPlane`
@@ -561,6 +579,9 @@ class FlorisInterface(LoggerBase):
                 Defaults to None.
             z_bounds (tuple, optional): limits of output array (in m).
                 Defaults to None.
+            calculate_wake (bool): Calculate the flow field accounting for waking.
+                If False, only the initial flow field before wake calculations
+                will be returned.
 
         Returns:
             :py:class:`~.tools.cut_plane.CutPlane`: containing values
@@ -574,13 +595,20 @@ class FlorisInterface(LoggerBase):
             x3_value=x_loc,
             x1_bounds=y_bounds,
             x2_bounds=z_bounds,
+            calculate_wake=calculate_wake
         )
 
         # Compute and return the cutplane
         return CutPlane(df)
 
     def get_y_plane(
-        self, y_loc, x_resolution=200, z_resolution=200, x_bounds=None, z_bounds=None
+        self,
+        y_loc,
+        x_resolution=200,
+        z_resolution=200,
+        x_bounds=None,
+        z_bounds=None,
+        calculate_wake=True
     ):
         """
         Shortcut method to instantiate a :py:class:`~.tools.cut_plane.CutPlane`
@@ -598,6 +626,9 @@ class FlorisInterface(LoggerBase):
                 Defaults to None.
             z_bounds (tuple, optional): limits of output array (in m).
                 Defaults to None.
+            calculate_wake (bool): Calculate the flow field accounting for waking.
+                If False, only the initial flow field before wake calculations
+                will be returned.
 
         Returns:
             :py:class:`~.tools.cut_plane.CutPlane`: containing values
@@ -611,6 +642,7 @@ class FlorisInterface(LoggerBase):
             x3_value=y_loc,
             x1_bounds=x_bounds,
             x2_bounds=z_bounds,
+            calculate_wake=calculate_wake
         )
 
         # Compute and return the cutplane

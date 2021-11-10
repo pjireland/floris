@@ -748,6 +748,36 @@ class FlowField:
                 -1 * self.wind_map.grid_wind_direction, center_of_rotation
             )
 
+        # Generate a horizontal wind direction field in global coordinates
+        u_global = (
+            self.u * np.cos(np.deg2rad(self.wind_map.grid_wind_direction))
+            + self.v * np.sin(np.deg2rad(self.wind_map.grid_wind_direction))
+        )
+        v_global = (
+            -self.u * np.sin(np.deg2rad(self.wind_map.grid_wind_direction))
+            + self.v * np.cos(np.deg2rad(self.wind_map.grid_wind_direction))
+        )
+        # A zero degree wind direction in FLORIS is pointing downward
+        # Positive wind directions are clockwise when looking from above
+        # Need to rotate 90 degrees and flip the direction to match the
+        # standard way of reporting
+        self.wind_direction = -(
+            np.rad2deg(np.arctan2(v_global, u_global)) + 90
+        )
+        # Get the wind direction averaged over points in a turbine's swept area
+        for i, turbine in enumerate(self.turbine_map.turbines):
+            turbine.ave_wind_direction = sp.stats.circmean(
+                np.deg2rad(
+                    self.wind_direction.flatten()[
+                        turbine.flow_field_point_indices
+                    ]
+                )
+            )
+            # Convert to degrees and coerce between +/- 180 degrees
+            turbine.ave_wind_direction = (
+                np.rad2deg(turbine.ave_wind_direction) + 180
+            ) % 360 - 180
+
     # Getters & Setters
 
     @property

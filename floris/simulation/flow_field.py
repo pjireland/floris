@@ -635,6 +635,29 @@ class FlowField:
                 u_wake, coord, self, rotated_x, rotated_y, rotated_z
             )
 
+            # update the turbine wind direction based on the wind direction
+            # at its hub
+            # TODO: is this the correct transformation?
+            # A zero degree wind direction in FLORIS is pointing downward
+            # Positive wind directions are clockwise when looking from above
+            # Need to rotate 90 degrees and flip the direction to match the
+            # standard way of reporting
+            wind_direction = (
+                self.wind_map.turbine_wind_direction[idx]
+                - np.rad2deg(np.arctan2(self.v, self.u_initial - u_wake))
+                - 90
+            )
+
+            turbine.average_wind_direction = sp.stats.circmean(
+                np.deg2rad(
+                    wind_direction.flatten()[turbine.flow_field_point_indices]
+                )
+            )
+            # Convert to degrees and coerce between +/- 180 degrees
+            turbine.average_wind_direction = (
+                np.rad2deg(turbine.average_wind_direction) + 180
+            ) % 360 - 180
+
             # get the wake deflection field
             deflection = self._compute_turbine_wake_deflection(
                 rotated_x, rotated_y, rotated_z, turbine, coord, self
@@ -747,52 +770,6 @@ class FlowField:
             self.x, self.y, self.z = self._rotated_grid(
                 -1 * self.wind_map.grid_wind_direction, center_of_rotation
             )
-
-        # Generate a horizontal wind direction field in global coordinates
-        u_global = (
-            self.u * np.cos(np.deg2rad(self.wind_map.grid_wind_direction))
-            + self.v * np.sin(np.deg2rad(self.wind_map.grid_wind_direction))
-        )
-        v_global = (
-            -self.u * np.sin(np.deg2rad(self.wind_map.grid_wind_direction))
-            + self.v * np.cos(np.deg2rad(self.wind_map.grid_wind_direction))
-        )
-        # A zero degree wind direction in FLORIS is pointing downward
-        # Positive wind directions are clockwise when looking from above
-        # Need to rotate 90 degrees and flip the direction to match the
-        # standard way of reporting
-        self.wind_direction = -(
-            np.rad2deg(np.arctan2(v_global, u_global)) + 90
-        )
-        # Get the wind direction averaged over points in a turbine's swept area
-        # The logic for getting the relevant points is taken from
-        # Turbine.calculate_swept_area_velocities()
-        flow_grid_points = np.column_stack(
-            [self.x.flatten(), self.y.flatten(), self.z.flatten()]
-        )
-        for i, turbine in enumerate(self.turbine_map.turbines):
-            # Set up a grid array
-            y_array = np.array(turbine.grid)[:, 0] + self.turbine_map.coords[i].x2
-            z_array = np.array(turbine.grid)[:, 1] + turbine.hub_height
-            x_array = np.ones_like(y_array) * self.turbine_map.coords[i].x1
-            grid_array = np.column_stack([x_array, y_array, z_array])
-            ii = np.array(
-                [
-                    np.argmin(
-                        np.sum((flow_grid_points - grid_array[i, :]) ** 2, axis=1)
-                    )
-                    for i in range(len(grid_array))
-                ]
-            )
-            turbine.ave_wind_direction = sp.stats.circmean(
-                np.deg2rad(
-                    self.wind_direction.flatten()[ii]
-                )
-            )
-            # Convert to degrees and coerce between +/- 180 degrees
-            turbine.ave_wind_direction = (
-                np.rad2deg(turbine.ave_wind_direction) + 180
-            ) % 360 - 180
 
     # Getters & Setters
 

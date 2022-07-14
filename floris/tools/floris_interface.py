@@ -185,7 +185,8 @@ class FlorisInterface(LoggerBase):
         # turbine_id: list[str] | None = None,
         # wtg_id: list[str] | None = None,
         # with_resolution: float | None = None,
-        solver_settings: dict | None = None
+        solver_settings: dict | None = None,
+        het_map = None
     ):
         # Export the floris object recursively as a dictionary
         floris_dict = self.floris.as_dict()
@@ -209,6 +210,8 @@ class FlorisInterface(LoggerBase):
             flow_field_dict["turbulence_intensity"] = turbulence_intensity
         if air_density is not None:
             flow_field_dict["air_density"] = air_density
+        if het_map is not None:
+            self.het_map = het_map
 
         ## Farm
         if layout is not None:
@@ -368,6 +371,8 @@ class FlorisInterface(LoggerBase):
         # TODO this has to be done here as it seems to be lost with reinitialize
         if yaw_angles is not None:
             self.floris.farm.yaw_angles = yaw_angles
+        else:
+            self.floris.farm.yaw_angles = current_yaw_angles
 
         # Calculate wake
         self.floris.solve_for_viz()
@@ -448,6 +453,8 @@ class FlorisInterface(LoggerBase):
         # TODO this has to be done here as it seems to be lost with reinitialize
         if yaw_angles is not None:
             self.floris.farm.yaw_angles = yaw_angles
+        else:
+            self.floris.farm.yaw_angles = current_yaw_angles
 
         # Calculate wake
         self.floris.solve_for_viz()
@@ -528,6 +535,8 @@ class FlorisInterface(LoggerBase):
         # TODO this has to be done here as it seems to be lost with reinitialize
         if yaw_angles is not None:
             self.floris.farm.yaw_angles = yaw_angles
+        else:
+            self.floris.farm.yaw_angles = current_yaw_angles
 
         # Calculate wake
         self.floris.solve_for_viz()
@@ -597,6 +606,9 @@ class FlorisInterface(LoggerBase):
             velocities=self.floris.flow_field.u,
         )
         return turbine_avg_vels
+
+    def get_turbine_TIs(self) -> NDArrayFloat:
+        return self.floris.flow_field.turbulence_intensity_field
 
     def get_farm_power(
         self,
